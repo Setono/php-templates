@@ -1,0 +1,10 @@
+parameters:
+	reportUnmatchedIgnoredErrors: true
+	checkMissingIterableValueType: false
+
+	excludes_analyse:
+		- 'tests/**.php'
+
+	ignoreErrors:
+		- '/Closure invoked with 2 parameters, 0 required/'
+		- '/Parameter \#1 \$var_array of function extract is passed by reference, so it expects variables only/'
