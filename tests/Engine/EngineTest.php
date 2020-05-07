@@ -5,17 +5,13 @@ declare(strict_types=1);
 namespace Setono\PhpTemplates\Engine;
 
 use PHPUnit\Framework\TestCase;
-use Setono\PhpTemplates\Exception\ExistingNamespaceException;
 use Setono\PhpTemplates\Exception\InvalidTemplateFormatException;
-use Setono\PhpTemplates\Exception\NamespaceNotRegisteredException;
 use Setono\PhpTemplates\Exception\RenderingException;
 use Setono\PhpTemplates\Exception\TemplateNotFoundException;
 
 /**
  * @covers \Setono\PhpTemplates\Engine\Engine
- * @covers \Setono\PhpTemplates\Exception\ExistingNamespaceException
  * @covers \Setono\PhpTemplates\Exception\InvalidTemplateFormatException
- * @covers \Setono\PhpTemplates\Exception\NamespaceNotRegisteredException
  * @covers \Setono\PhpTemplates\Exception\RenderingException
  * @covers \Setono\PhpTemplates\Exception\TemplateNotFoundException
  */
@@ -27,9 +23,9 @@ final class EngineTest extends TestCase
     public function it_renders(): void
     {
         $engine = new Engine();
-        $engine->addPath('Test', __DIR__ . '/Fixtures');
+        $engine->addPath(__DIR__ . '/Fixtures/app-template-dir');
 
-        $result = $engine->render('@Test/template', [
+        $result = $engine->render('@App/template', [
             'name' => 'John Doe',
         ]);
 
@@ -41,11 +37,9 @@ final class EngineTest extends TestCase
      */
     public function it_renders_when_paths_are_added_in_the_constructor(): void
     {
-        $engine = new Engine([
-            'Test' => __DIR__ . '/Fixtures',
-        ]);
+        $engine = new Engine([__DIR__ . '/Fixtures/app-template-dir']);
 
-        $result = $engine->render('@Test/template', [
+        $result = $engine->render('@App/template', [
             'name' => 'John Doe',
         ]);
 
@@ -55,13 +49,31 @@ final class EngineTest extends TestCase
     /**
      * @test
      */
-    public function it_throws_exception_when_same_namespace_is_added_twice(): void
+    public function it_renders_when_paths_are_added_in_the_constructor_with_priorities(): void
     {
-        $this->expectException(ExistingNamespaceException::class);
+        $engine = new Engine([__DIR__ . '/Fixtures/app-template-dir' => 10]);
 
+        $result = $engine->render('@App/template', [
+            'name' => 'John Doe',
+        ]);
+
+        $this->assertSame('<h1>Hello John Doe</h1>', $result);
+    }
+
+    /**
+     * @test
+     */
+    public function it_renders_correct_template_when_a_template_is_overridden(): void
+    {
         $engine = new Engine();
-        $engine->addPath('Test', __DIR__ . '/Fixtures');
-        $engine->addPath('Test', __DIR__ . '/Fixtures');
+        $engine->addPath(__DIR__ . '/Fixtures/app-template-dir', 10);
+        $engine->addPath(__DIR__ . '/Fixtures/third-party-template-dir', 0);
+
+        $result = $engine->render('@ThirdPartyNamespace/template', [
+            'name' => 'John Doe',
+        ]);
+
+        $this->assertSame('<h1>Hi John Doe! This is rendered</h1>', $result);
     }
 
     /**
@@ -78,23 +90,34 @@ final class EngineTest extends TestCase
     /**
      * @test
      */
-    public function it_throws_exception_when_namespace_is_not_registered(): void
+    public function it_throws_exception_when_template_does_not_exist(): void
     {
-        $this->expectException(NamespaceNotRegisteredException::class);
+        $this->expectException(TemplateNotFoundException::class);
 
-        $engine = new Engine();
-        $engine->render('@Namespace/template');
+        $engine = new Engine([__DIR__ . '/Fixtures/app-template-dir']);
+        $engine->render('@App/templte');
     }
 
     /**
      * @test
      */
-    public function it_throws_exception_when_template_does_not_exist(): void
+    public function it_throws_exception_when_path_does_not_exist_and_no_other_paths_are_present(): void
     {
         $this->expectException(TemplateNotFoundException::class);
 
-        $engine = new Engine(['Test' => __DIR__ . '/Fixtures']);
-        $engine->render('@Test/templte');
+        $engine = new Engine([__DIR__ . '/Fixtures/app-template-dri']);
+        $engine->render('@App/templte');
+    }
+
+    /**
+     * @test
+     */
+    public function it_throws_exception_when_namespace_directory_does_not_exist_and_no_other_matches_are_present(): void
+    {
+        $this->expectException(TemplateNotFoundException::class);
+
+        $engine = new Engine([__DIR__ . '/Fixtures/app-template-dir']);
+        $engine->render('@Apps/template');
     }
 
     /**
@@ -104,7 +127,7 @@ final class EngineTest extends TestCase
     {
         $this->expectException(RenderingException::class);
 
-        $engine = new Engine(['Test' => __DIR__ . '/Fixtures']);
-        $engine->render('@Test/template_throws');
+        $engine = new Engine([__DIR__ . '/Fixtures/app-template-dir']);
+        $engine->render('@App/template_throws');
     }
 }

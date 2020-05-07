@@ -6,32 +6,39 @@ namespace Setono\PhpTemplates\Engine;
 
 use function Safe\ob_end_clean;
 use function Safe\preg_match;
-use Setono\PhpTemplates\Exception\ExistingNamespaceException;
 use Setono\PhpTemplates\Exception\InvalidTemplateFormatException;
-use Setono\PhpTemplates\Exception\NamespaceNotRegisteredException;
 use Setono\PhpTemplates\Exception\RenderingException;
 use Setono\PhpTemplates\Exception\TemplateNotFoundException;
+use SplPriorityQueue;
 use Throwable;
 
 final class Engine implements EngineInterface
 {
-    /** @var array */
-    private $paths = [];
+    /** @var SplPriorityQueue */
+    private $paths;
 
     public function __construct(array $paths = [])
     {
-        foreach ($paths as $namespace => $path) {
-            $this->addPath($namespace, $path);
+        $this->paths = new SplPriorityQueue();
+
+        foreach ($paths as $idx => $value) {
+            $priority = 0;
+            $path = $value;
+
+            // if the index is a string it is the namespace and the value is the priority
+            if (is_string($idx)) {
+                $path = $idx;
+                $priority = $value;
+            }
+            $this->addPath($path, $priority);
         }
     }
 
-    public function addPath(string $namespace, string $path): void
+    public function addPath(string $path, int $priority = 0): void
     {
-        if (isset($this->paths[$namespace])) {
-            throw new ExistingNamespaceException($namespace);
-        }
+        $path = rtrim($path, '/');
 
-        $this->paths[$namespace] = rtrim($path, '/');
+        $this->paths->insert($path, $priority);
     }
 
     public function render(string $template, array $context = []): string
@@ -56,18 +63,28 @@ final class Engine implements EngineInterface
 
         $namespace = $matches[1];
         $filename = $matches[2] . '.php';
+        $checkedPaths = [];
 
-        if (!isset($this->paths[$namespace])) {
-            throw new NamespaceNotRegisteredException($namespace);
+        foreach ($this->paths as $path) {
+            $checkedPaths[] = $path;
+
+            if (!is_dir($path)) {
+                continue;
+            }
+
+            if (!is_dir($path . '/' . $namespace)) {
+                continue;
+            }
+
+            $resolvedPath = $path . '/' . $namespace . '/' . $filename;
+            if (!file_exists($resolvedPath)) {
+                continue;
+            }
+
+            return $resolvedPath;
         }
 
-        $path = $this->paths[$namespace] . '/' . $filename;
-
-        if (!file_exists($path)) {
-            throw new TemplateNotFoundException($template, $this->paths[$namespace]);
-        }
-
-        return $path;
+        throw new TemplateNotFoundException($template, $checkedPaths);
     }
 
     private static function obWrap(string $template, callable $wrap): string

@@ -1,0 +1,1 @@
+<h1>Hi <?=$name?>! This is rendered</h1>

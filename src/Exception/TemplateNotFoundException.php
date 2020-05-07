@@ -9,10 +9,10 @@ use function Safe\sprintf;
 
 final class TemplateNotFoundException extends InvalidArgumentException implements ExceptionInterface
 {
-    public function __construct(string $template, string $path)
+    public function __construct(string $template, array $paths)
     {
         parent::__construct(sprintf(
-            'The template, "%s" was not found. Looked inside this directory: %s', $template, $path
+            'The template, "%s" was not found. Looked inside these paths (in this order): %s', $template, implode(', ', $paths)
         ));
     }
 }
