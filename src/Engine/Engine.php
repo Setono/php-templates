@@ -6,6 +6,7 @@ namespace Setono\PhpTemplates\Engine;
 
 use function Safe\ob_end_clean;
 use function Safe\preg_match;
+use Setono\PhpTemplates\Exception\InvalidPathException;
 use Setono\PhpTemplates\Exception\InvalidTemplateFormatException;
 use Setono\PhpTemplates\Exception\RenderingException;
 use Setono\PhpTemplates\Exception\TemplateNotFoundException;
@@ -38,6 +39,10 @@ final class Engine implements EngineInterface
     {
         $path = rtrim($path, '/');
 
+        if (!is_dir($path) || !is_readable($path)) {
+            throw new InvalidPathException($path);
+        }
+
         $this->paths->insert($path, $priority);
     }
 
@@ -67,10 +72,6 @@ final class Engine implements EngineInterface
 
         foreach ($this->paths as $path) {
             $checkedPaths[] = $path;
-
-            if (!is_dir($path)) {
-                continue;
-            }
 
             if (!is_dir($path . '/' . $namespace)) {
                 continue;

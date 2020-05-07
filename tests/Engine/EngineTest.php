@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Setono\PhpTemplates\Engine;
 
 use PHPUnit\Framework\TestCase;
+use Setono\PhpTemplates\Exception\InvalidPathException;
 use Setono\PhpTemplates\Exception\InvalidTemplateFormatException;
 use Setono\PhpTemplates\Exception\RenderingException;
 use Setono\PhpTemplates\Exception\TemplateNotFoundException;
 
 /**
  * @covers \Setono\PhpTemplates\Engine\Engine
+ * @covers \Setono\PhpTemplates\Exception\InvalidPathException
  * @covers \Setono\PhpTemplates\Exception\InvalidTemplateFormatException
  * @covers \Setono\PhpTemplates\Exception\RenderingException
  * @covers \Setono\PhpTemplates\Exception\TemplateNotFoundException
@@ -101,12 +103,11 @@ final class EngineTest extends TestCase
     /**
      * @test
      */
-    public function it_throws_exception_when_path_does_not_exist_and_no_other_paths_are_present(): void
+    public function it_throws_exception_when_path_is_invalid(): void
     {
-        $this->expectException(TemplateNotFoundException::class);
+        $this->expectException(InvalidPathException::class);
 
         $engine = new Engine([__DIR__ . '/Fixtures/app-template-dri']);
-        $engine->render('@App/templte');
     }
 
     /**
