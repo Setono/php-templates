@@ -11,8 +11,14 @@ final class TemplateNotFoundException extends InvalidArgumentException implement
 {
     public function __construct(string $template, array $paths)
     {
-        parent::__construct(sprintf(
-            'The template, "%s" was not found. Looked inside these paths (in this order): %s', $template, implode(', ', $paths)
-        ));
+        $message = sprintf('The template, "%s" was not found.', $template);
+
+        if (count($paths) > 0) {
+            $message .= sprintf(' Looked inside these paths (in this order): %s', implode(', ', $paths));
+        } else {
+            $message .= ' No paths has been added to the engine. Use the Setono\PhpTemplates\Engine\EngineInterface::addPath() method to do so.';
+        }
+
+        parent::__construct($message);
     }
 }
