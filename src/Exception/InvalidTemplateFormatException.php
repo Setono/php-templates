@@ -9,10 +9,18 @@ use function Safe\sprintf;
 
 final class InvalidTemplateFormatException extends InvalidArgumentException implements ExceptionInterface
 {
-    public function __construct(string $template)
+    public function __construct(string $template, string $regexToMatch = null)
     {
-        parent::__construct(sprintf(
-            'The template, "%s", does not have the correct format. Use "@Namespace/template"', $template
-        ));
+        $message = sprintf(
+            'The template, "%s", does not have the correct format.', $template
+        );
+
+        if (null === $regexToMatch) {
+            $message .= ' Use "@Namespace/template.ext"';
+        } else {
+            $message .= sprintf(' The format must match this regex: %s', $regexToMatch);
+        }
+
+        parent::__construct($message);
     }
 }

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Setono\PhpTemplates\Engine;
 
+use const E_USER_DEPRECATED;
+use const PATHINFO_EXTENSION;
 use function Safe\ob_end_clean;
 use function Safe\preg_match;
+use function Safe\sprintf;
 use Setono\PhpTemplates\Exception\InvalidPathException;
 use Setono\PhpTemplates\Exception\InvalidTemplateFormatException;
 use Setono\PhpTemplates\Exception\RenderingException;
@@ -15,6 +18,9 @@ use Throwable;
 
 final class Engine implements EngineInterface
 {
+    /** @var string */
+    private const TEMPLATE_FORMAT_REGEX = '^@([^/]+)/(.+\..+)';
+
     /** @var SplPriorityQueue */
     private $paths;
 
@@ -62,12 +68,18 @@ final class Engine implements EngineInterface
 
     private function resolvePath(string $template): string
     {
-        if (preg_match('#^@([^/]+)/(.+)#', $template, $matches) !== 1) {
+        // this is a BC layer for when a user render a template without an extension
+        if (pathinfo($template, PATHINFO_EXTENSION) === '') {
+            @trigger_error('Not adding an extension to the template name is deprecated since v1.1', E_USER_DEPRECATED);
+            $template .= '.php';
+        }
+
+        if (preg_match(sprintf('#%s#', self::TEMPLATE_FORMAT_REGEX), $template, $matches) !== 1) {
             throw new InvalidTemplateFormatException($template);
         }
 
-        $namespace = $matches[1];
-        $filename = $matches[2] . '.php';
+        [, $namespace, $filename] = $matches;
+
         $checkedPaths = [];
 
         foreach ($this->paths as $path) {

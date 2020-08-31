@@ -27,11 +27,11 @@ final class EngineTest extends TestCase
         $engine = new Engine();
         $engine->addPath(__DIR__ . '/Fixtures/app-template-dir');
 
-        $result = $engine->render('@App/template', [
+        $result = $engine->render('@App/template.php', [
             'name' => 'John Doe',
         ]);
 
-        $this->assertSame('<h1>Hello John Doe</h1>', $result);
+        self::assertSame('<h1>Hello John Doe</h1>', $result);
     }
 
     /**
@@ -41,11 +41,11 @@ final class EngineTest extends TestCase
     {
         $engine = new Engine([__DIR__ . '/Fixtures/app-template-dir']);
 
-        $result = $engine->render('@App/template', [
+        $result = $engine->render('@App/template.php', [
             'name' => 'John Doe',
         ]);
 
-        $this->assertSame('<h1>Hello John Doe</h1>', $result);
+        self::assertSame('<h1>Hello John Doe</h1>', $result);
     }
 
     /**
@@ -55,11 +55,11 @@ final class EngineTest extends TestCase
     {
         $engine = new Engine([__DIR__ . '/Fixtures/app-template-dir' => 10]);
 
-        $result = $engine->render('@App/template', [
+        $result = $engine->render('@App/template.php', [
             'name' => 'John Doe',
         ]);
 
-        $this->assertSame('<h1>Hello John Doe</h1>', $result);
+        self::assertSame('<h1>Hello John Doe</h1>', $result);
     }
 
     /**
@@ -71,11 +71,11 @@ final class EngineTest extends TestCase
         $engine->addPath(__DIR__ . '/Fixtures/app-template-dir', 10);
         $engine->addPath(__DIR__ . '/Fixtures/third-party-template-dir', 0);
 
-        $result = $engine->render('@ThirdPartyNamespace/template', [
+        $result = $engine->render('@ThirdPartyNamespace/template.php', [
             'name' => 'John Doe',
         ]);
 
-        $this->assertSame('<h1>Hi John Doe! This is rendered</h1>', $result);
+        self::assertSame('<h1>Hi John Doe! This is rendered</h1>', $result);
     }
 
     /**
@@ -86,7 +86,7 @@ final class EngineTest extends TestCase
         $this->expectException(InvalidTemplateFormatException::class);
 
         $engine = new Engine();
-        $engine->render('template');
+        $engine->render('template.php');
     }
 
     /**
@@ -97,7 +97,7 @@ final class EngineTest extends TestCase
         $this->expectException(TemplateNotFoundException::class);
 
         $engine = new Engine([__DIR__ . '/Fixtures/app-template-dir']);
-        $engine->render('@App/templte');
+        $engine->render('@App/templte.php');
     }
 
     /**
@@ -118,7 +118,7 @@ final class EngineTest extends TestCase
         $this->expectException(TemplateNotFoundException::class);
 
         $engine = new Engine([__DIR__ . '/Fixtures/app-template-dir']);
-        $engine->render('@Apps/template');
+        $engine->render('@Apps/template.php');
     }
 
     /**
@@ -129,6 +129,6 @@ final class EngineTest extends TestCase
         $this->expectException(RenderingException::class);
 
         $engine = new Engine([__DIR__ . '/Fixtures/app-template-dir']);
-        $engine->render('@App/template_throws');
+        $engine->render('@App/template_throws.php');
     }
 }
