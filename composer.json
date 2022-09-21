@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "php": "^7.2",
+        "php": ">=7.2",
         "thecodingmachine/safe": "^1.0"
     },
     "require-dev": {
